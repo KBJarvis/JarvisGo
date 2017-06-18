@@ -8,13 +8,12 @@ import random
 import re
 import sys
 import time
-import os.path
 
 N = 9
 W = N + 2
 empty = "\n".join([(N + 1) * ' '] + N * [' ' + N * '.'] + [(N + 2) * ' '])
 colstr = 'ABCDEFGHIJKLMNOPQRST'
-MAX_GAME_LEN = N * N
+MAX_GAME_LEN = N * N * 2
 
 N_SIMS = 1400
 RAVE_EQUIV = 3500
@@ -763,29 +762,6 @@ def mcbenchmark(n):
         sumscore += mcplayout(empty_position(), W * W * [0])[0]
     return float(sumscore) / n
 
-def parseToArray(tmp):
-    arr = tmp.split("\n")
-    board = []
-    start = 1
-    for i in range(0, N):
-        tmp = []
-        for j in range(0, N):
-            tmp.append(arr[start + i][j + 1])
-        board.append(tmp)
-    return board
-
-
-def parseToString(arr):
-	str = "         \n"
-	n = len(arr)
-	for i in range(0, n):
-		str += " "
-		for j in range(0, n):
-			str += arr[i][j]
-		str += "\n"
-	str += "           "
-	return str
-
 def jarvisGo(arg):
 	tree = TreeNode(Position(board=arg, cap=(0, 0), n=0, ko=None, last=None, last2=None, komi=7.5))
 	tree.expand()
@@ -793,26 +769,20 @@ def jarvisGo(arg):
 	tree = tree_search(tree, N_SIMS, owner_map)
 	ret = tree.pos.last
 
-	temp = parseToArray(arg)
 	if ret is None:
 		eyes = ([pos for pos, char in enumerate(arg) if char == '.'])
-		if len(eyes) > 5:
-			rand = random.randint(0,len(eyes))
+		if len(eyes) > 12:
+			rand = random.randint(0,len(eyes)-1)
 			filleye = str_coord(eyes[rand])
-			print(filleye+"  -")
-			row, col = divmod(eyes[rand] - (W + 1), W)
-			temp[row][col] = 'x'
+			print(filleye)
 		else:	
 			print('pass')
 	else:
-		row, col = divmod(ret - (W + 1), W)
-		temp[row][col] = 'x'
 		ret = str_coord(ret)
 		print('%s ' % ret)
 
-	temp = parseToString(temp)
 	his = open("history.txt", "w")
-	his.write(temp)
+	his.write(arg)
 	his.close()
 
 	return ret
